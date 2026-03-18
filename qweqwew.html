@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Memora — Personal Memory OS</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --panel: #ffffff;
+      --panel-2: #f9fbff;
+      --text: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --brand: #4f46e5;
+      --brand-soft: #eef2ff;
+      --success: #16a34a;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: #0f172a;
+      color: #fff;
+      padding: 24px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .brand {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .brand small {
+      display: block;
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .nav button {
+      border: 0;
+      background: transparent;
+      color: #cbd5e1;
+      text-align: left;
+      padding: 12px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: 0.2s ease;
+    }
+
+    .nav button:hover,
+    .nav button.active {
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+    }
+
+    .sidebar-card {
+      margin-top: auto;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .sidebar-card h4 {
+      margin: 0 0 8px;
+      font-size: 15px;
+    }
+
+    .sidebar-card p {
+      margin: 0 0 12px;
+      color: #cbd5e1;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .sidebar-card a {
+      display: inline-block;
+      background: #fff;
+      color: #111827;
+      text-decoration: none;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .main {
+      padding: 24px;
+      overflow: auto;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .title-wrap h1 {
+      margin: 0;
+      font-size: 32px;
+      letter-spacing: -0.6px;
+    }
+
+    .title-wrap p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn-primary {
+      background: var(--brand);
+      color: #fff;
+    }
+
+    .btn-soft {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      color: var(--text);
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+
+    .card p.sub {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .metric {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .metric strong {
+      font-size: 28px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .item {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: var(--panel-2);
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .item h4 {
+      margin: 0 0 6px;
+      font-size: 15px;
+    }
+
+    .item p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .badge-success {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .badge-warning {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .badge-danger {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .badge-brand {
+      background: var(--brand-soft);
+      color: var(--brand);
+    }
+
+    .search-box {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .search-box input,
+    .search-box select,
+    .search-box textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .ask-results {
+      min-height: 180px;
+      border: 1px dashed #cbd5e1;
+      border-radius: 16px;
+      padding: 18px;
+      background: #fff;
+    }
+
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 999px;
+      padding: 9px 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 800px;
+    }
+
+    th, td {
+      padding: 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f8fafc;
+      color: #374151;
+      font-size: 13px;
+    }
+
+    .graph-box {
+      position: relative;
+      height: 420px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .graph-node {
+      position: absolute;
+      min-width: 120px;
+      text-align: center;
+      padding: 12px 14px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .graph-line {
+      position: absolute;
+      height: 2px;
+      background: #c7d2fe;
+      transform-origin: left center;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .footer-note {
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 1100px) {
+      .grid-3,
+      .grid-2,
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        border-bottom-left-radius: 24px;
+        border-bottom-right-radius: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div>
+        <div class="brand">Memora
+          <small>Personal Memory OS</small>
+        </div>
+
+        <div class="nav">
+          <button class="active" onclick="showPage('pulse', this)">Pulse</button>
+          <button onclick="showPage('ask', this)">Ask</button>
+          <button onclick="showPage('meetings', this)">Meetings</button>
+          <button onclick="showPage('coupons', this)">Coupons</button>
+          <button onclick="showPage('vault', this)">Vault</button>
+          <button onclick="showPage('expiry', this)">Expiry Intelligence</button>
+          <button onclick="showPage('graph', this)">Life Graph</button>
+          <button onclick="showPage('integrations', this)">Integrations</button>
+        </div>
+      </div>
+
+      <div class="sidebar-card">
+        <h4>Google Calendar</h4>
+        <p>
+          Connect user calendar, ingest meetings, and surface them inside Memora Pulse.
+        </p>
+        <a href="javascript:void(0)">Connect Calendar</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="title-wrap">
+          <h1>Memora Dashboard</h1>
+          <p>Store, retrieve, monitor, and act on the important memories of life.</p>
+        </div>
+        <div class="actions">
+          <button class="btn btn-soft">Import File</button>
+          <button class="btn btn-primary">Add Memory</button>
+        </div>
+      </div>
+
+      <!-- Pulse -->
+      <section id="pulse" class="page active">
+        <div class="grid grid-3">
+          <div class="card">
+            <h3>Urgent Items</h3>
+            <p class="sub">Immediate attention required</p>
+            <div class="metric"><strong>4</strong><span>need action today</span></div>
+          </div>
+          <div class="card">
+            <h3>Upcoming Meetings</h3>
+            <p class="sub">Synced from Google Calendar</p>
+            <div class="metric"><strong>3</strong><span>in next 24 hours</span></div>
+          </div>
+          <div class="card">
+            <h3>Expiring Coupons</h3>
+            <p class="sub">Soon to expire</p>
+            <div class="metric"><strong>2</strong><span>redeem soon</span></div>
+          </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-top:18px;">
+          <div class="card">
+            <h3>Today’s Meetings</h3>
+            <p class="sub">Meeting memories surfaced inside Pulse</p>
+            <div class="list">
+              <div class="item">
+                <div class="row">
+                  <div>
+                    <h4>Product Review with Design</h4>
+                    <p>Starts in 43 min · Google Meet · Organizer: Aarav Mehta</p>
+                  </div>
+                  <span class="badge badge-brand">Confirmed</span>
+                </div>
+              </div>
+              <div class="item">
+                <div class="row">
+                  <div>
+                    <h4>Founder Sync</h4>
+                    <p>2:00 PM · Conference Room A · Organizer: Naina Kapoor</p>
+                  </div>
+                  <span class="badge badge-warning">Tentative</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Expiring & Important</h3>
+            <p class="sub">What Memora thinks matters right now</p>
+            <div class="list">
+              <div class="item">
+                <div class="row">
+                  <div>
+                    <h4>MakeMyTrip Voucher</h4>
+                    <p>₹500 OFF · Expires tomorrow</p>
+                  </div>
+                  <span class="badge badge-danger">Urgent</span>
+                </div>
+              </div>
+              <div class="item">
+                <div class="row">
+                  <div>
+                    <h4>Passport Renewal Reminder</h4>
+                    <p>Expires in 42 days</p>
+                  </div>
+                  <span class="badge badge-warning">Soon</span>
+                </div>
+              </div>
+              <div class="item">
+                <div class="row">
+                  <div>
+                    <h4>MacBook Warranty</h4>
+                    <p>Ends in 98 days</p>
+                  </div>
+                  <span class="badge badge-success">Tracked</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Ask -->
+      <section id="ask" class="page">
+        <div class="card">
+          <h3>Ask Your Memory</h3>
+          <p class="sub">Search life objects using plain language instead of file names.</p>
+
+          <div class="search-box">
+            <input id="askInput" type="text" placeholder="Example: What meetings do I have today?" />
+            <button class="btn btn-primary" onclick="runAsk()">Ask Memora</button>
+          </div>
+
+          <div class="suggestions">
+            <button class="chip" onclick="fillAsk('What meetings do I have today?')">What meetings do I have today?</button>
+            <button class="chip" onclick="fillAsk('Show my Amazon coupons')">Show my Amazon coupons</button>
+            <button class="chip" onclick="fillAsk('What expires this month?')">What expires this month?</button>
+            <button class="chip" onclick="fillAsk('Find my passport')">Find my passport</button>
+          </div>
+
+          <div class="ask-results" id="askResults" style="margin-top:16px;">
+            <strong>Results will appear here</strong>
+            <p class="muted" style="margin-top:8px;">
+              This is a front-end HTML prototype of the Ask experience.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Meetings -->
+      <section id="meetings" class="page">
+        <div class="card">
+          <h3>Meetings</h3>
+          <p class="sub">Calendar-ingested events that become Memora meeting memories.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Start</th>
+                  <th>End</th>
+                  <th>Location</th>
+                  <th>Organizer</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Product Review with Design</td>
+                  <td>Today, 10:30 AM</td>
+                  <td>11:15 AM</td>
+                  <td>Google Meet</td>
+                  <td>Aarav Mehta</td>
+                  <td><span class="badge badge-brand">Confirmed</span></td>
+                </tr>
+                <tr>
+                  <td>Founder Sync</td>
+                  <td>Today, 2:00 PM</td>
+                  <td>2:30 PM</td>
+                  <td>Conference Room A</td>
+                  <td>Naina Kapoor</td>
+                  <td><span class="badge badge-warning">Tentative</span></td>
+                </tr>
+                <tr>
+                  <td>Growth Agency Check-in</td>
+                  <td>Tomorrow, 11:00 AM</td>
+                  <td>11:45 AM</td>
+                  <td>Google Meet</td>
+                  <td>Rahul Shah</td>
+                  <td><span class="badge badge-brand">Confirmed</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="footer-note">
+            Backend mapping: Google Calendar → CalendarConnection → MeetingMemory → Pulse reminders.
+          </div>
+        </div>
+      </section>
+
+      <!-- Coupons -->
+      <section id="coupons" class="page">
+        <div class="grid grid-2">
+          <div class="card">
+            <h3>Saved Coupons</h3>
+            <p class="sub">Coupons as typed memory objects with expiry tracking.</p>
+
+            <div class="list">
+              <div class="item">
+                <div class="row">
+                  <div>
+                    <h4>Flat 20% Off Electronics</h4>
+                    <p>Amazon · SAVE20 · 20% OFF · Expires in 2 days</p>
+                  </div>
+                  <span class="badge badge-warning">Active</span>
+                </div>
+              </div>
+
+              <div class="item">
+                <div class="row">
+                  <div>
+                    <h4>₹500 Travel Voucher</h4>
+                    <p>MakeMyTrip · TRIP500 · Expires tomorrow</p>
+                  </div>
+                  <span class="badge badge-danger">Urgent</span>
+                </div>
+              </div>
+
+              <div class="item">
+                <div class="row">
+                  <div>
+                    <h4>Food Coupon</h4>
+                    <p>Swiggy · HUNGRY50 · Already used</p>
+                  </div>
+                  <span class="badge badge-success">Used</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Add Coupon</h3>
+            <p class="sub">Prototype form for coupon memory creation.</p>
+
+            <div class="form-grid">
+              <input type="text" placeholder="Coupon title" />
+              <input type="text" placeholder="Brand" />
+              <input type="text" placeholder="Code" />
+              <input type="text" placeholder="Discount text" />
+              <input type="datetime-local" />
+              <select>
+                <option>ACTIVE</option>
+                <option>USED</option>
+                <option>EXPIRED</option>
+              </select>
+              <textarea class="full" rows="4" placeholder="Terms and description"></textarea>
+              <button class="btn btn-primary full">Save Coupon</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Vault -->
+      <section id="vault" class="page">
+        <div class="card">
+          <h3>Vault</h3>
+          <p class="sub">Structured memory objects, not just uploaded files.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th>Title</th>
+                  <th>Summary</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Identity</td>
+                  <td>Passport</td>
+                  <td>India Passport · Expires 2028</td>
+                  <td><span class="badge badge-success">Verified</span></td>
+                </tr>
+                <tr>
+                  <td>Purchase</td>
+                  <td>MacBook Air Invoice</td>
+                  <td>Apple invoice with warranty metadata</td>
+                  <td><span class="badge badge-brand">Tracked</span></td>
+                </tr>
+                <tr>
+                  <td>Travel</td>
+                  <td>Delhi Trip Bundle</td>
+                  <td>Flight + hotel + travel insurance</td>
+                  <td><span class="badge badge-brand">Linked</span></td>
+                </tr>
+                <tr>
+                  <td>Subscription</td>
+                  <td>Figma Pro</td>
+                  <td>Monthly recurring subscription</td>
+                  <td><span class="badge badge-warning">Renews Soon</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Expiry -->
+      <section id="expiry" class="page">
+        <div class="card">
+          <h3>Expiry Intelligence</h3>
+          <p class="sub">Memora highlights what needs action before it becomes a problem.</p>
+
+          <div class="list">
+            <div class="item">
+              <div class="row">
+                <div>
+                  <h4>MakeMyTrip Voucher</h4>
+                  <p>Expires in 1 day</p>
+                </div>
+                <span class="badge badge-danger">Urgent</span>
+              </div>
+            </div>
+
+            <div class="item">
+              <div class="row">
+                <div>
+                  <h4>Figma Subscription</h4>
+                  <p>Renews in 6 days</p>
+                </div>
+                <span class="badge badge-warning">Soon</span>
+              </div>
+            </div>
+
+            <div class="item">
+              <div class="row">
+                <div>
+                  <h4>Passport</h4>
+                  <p>Expires in 42 days</p>
+                </div>
+                <span class="badge badge-warning">Soon</span>
+              </div>
+            </div>
+
+            <div class="item">
+              <div class="row">
+                <div>
+                  <h4>MacBook Warranty</h4>
+                  <p>Ends in 98 days</p>
+                </div>
+                <span class="badge badge-success">Later</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Graph -->
+      <section id="graph" class="page">
+        <div class="card">
+          <h3>Life Graph</h3>
+          <p class="sub">Connected memory view showing how objects relate to events and actions.</p>
+
+          <div class="graph-box">
+            <div class="graph-line" style="left: 180px; top: 110px; width: 170px; transform: rotate(-12deg);"></div>
+            <div class="graph-line" style="left: 350px; top: 125px; width: 160px; transform: rotate(18deg);"></div>
+            <div class="graph-line" style="left: 350px; top: 190px; width: 180px; transform: rotate(-8deg);"></div>
+
+            <div class="graph-node" style="left: 60px; top: 90px;">Passport</div>
+            <div class="graph-node" style="left: 280px; top: 80px;">Delhi Trip</div>
+            <div class="graph-node" style="left: 520px; top: 120px;">Flight Ticket</div>
+            <div class="graph-node" style="left: 520px; top: 220px;">Hotel Booking</div>
+            <div class="graph-node" style="left: 250px; top: 260px;">Travel Insurance</div>
+          </div>
+
+          <div class="footer-note">
+            Later backend extension: object relationships table, inferred links, and graph-aware Ask queries.
+          </div>
+        </div>
+      </section>
+
+      <!-- Integrations -->
+      <section id="integrations" class="page">
+        <div class="grid grid-2">
+          <div class="card">
+            <h3>Google Calendar Integration</h3>
+            <p class="sub">OAuth connection + event ingestion + reminders.</p>
+
+            <div class="list">
+              <div class="item">
+                <div class="row">
+                  <div>
+                    <h4>Status</h4>
+                    <p>Not connected in this template preview</p>
+                  </div>
+                  <span class="badge badge-warning">Pending</span>
+                </div>
+              </div>
+
+              <div class="item">
+                <div class="row">
+                  <div>
+                    <h4>Backend Flow</h4>
+                    <p>connect → callback → token save → sync → reminders</p>
+                  </div>
+                  <span class="badge badge-brand">Configured</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:14px;">
+              <button class="btn btn-primary">Connect Google Calendar</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Current Backend Notes</h3>
+            <p class="sub">Important for testing the Django integration.</p>
+
+            <div class="list">
+              <div class="item">
+                <h4>OAuth error reason</h4>
+                <p>`client_id` is missing because Django is not reading `GOOGLE_OAUTH_CLIENT_ID` from `.env`.</p>
+              </div>
+
+              <div class="item">
+                <h4>Check these values</h4>
+                <p>
+                  GOOGLE_OAUTH_CLIENT_ID<br>
+                  GOOGLE_OAUTH_CLIENT_SECRET<br>
+                  GOOGLE_OAUTH_REDIRECT_URI
+                </p>
+              </div>
+
+              <div class="item">
+                <h4>Expected callback</h4>
+                <p>http://127.0.0.1:8000/api/meetings/google/callback/</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    function showPage(id, button) {
+      document.querySelectorAll(".page").forEach(page => page.classList.remove("active"));
+      document.querySelectorAll(".nav button").forEach(btn => btn.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+      button.classList.add("active");
+    }
+
+    function fillAsk(text) {
+      document.getElementById("askInput").value = text;
+      runAsk();
+    }
+
+    function runAsk() {
+      const value = document.getElementById("askInput").value.trim().toLowerCase();
+      const box = document.getElementById("askResults");
+
+      if (!value) {
+        box.innerHTML = "<strong>Please type a memory query.</strong>";
+        return;
+      }
+
+      if (value.includes("meeting")) {
+        box.innerHTML = `
+          <strong>Today’s Meetings</strong>
+          <ul>
+            <li>Product Review with Design — 10:30 AM</li>
+            <li>Founder Sync — 2:00 PM</li>
+          </ul>
+        `;
+        return;
+      }
+
+      if (value.includes("coupon") || value.includes("amazon")) {
+        box.innerHTML = `
+          <strong>Coupon Results</strong>
+          <ul>
+            <li>Amazon — SAVE20 — 20% OFF — Expires in 2 days</li>
+          </ul>
+        `;
+        return;
+      }
+
+      if (value.includes("expire")) {
+        box.innerHTML = `
+          <strong>Expiring Soon</strong>
+          <ul>
+            <li>MakeMyTrip Voucher — Expires tomorrow</li>
+            <li>Figma Subscription — Renews in 6 days</li>
+            <li>Passport — Expires in 42 days</li>
+          </ul>
+        `;
+        return;
+      }
+
+      if (value.includes("passport")) {
+        box.innerHTML = `
+          <strong>Passport</strong>
+          <p>Identity memory found. Expires in 42 days. Linked to Delhi Trip and Travel Insurance.</p>
+        `;
+        return;
+      }
+
+      box.innerHTML = `
+        <strong>No exact mock result found</strong>
+        <p class="muted" style="margin-top:8px;">
+          This template is ready for backend API integration with Ask, meetings, coupons, and expiry endpoints.
+        </p>
+      `;
+    }
+  </script>
+</body>
+</html>
